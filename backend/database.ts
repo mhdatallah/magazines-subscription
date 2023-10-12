@@ -47,7 +47,7 @@ export const getMagazine = async (id: number) => {
     WHERE id = ?
     `,
     [id]
-  );
+    );
 
   return (row as RowDataPacket[]).map((row) => convertRow(row))[0];
 };
@@ -86,9 +86,9 @@ export const deleteMagazine = async (id: number) => {
 
 // Utils
 
-const convertRow = (row: RowDataPacket) => {
+const convertRow = (row: RowDataPacket): Magazine => {
   return {
-    ...row,
+    ...row as Magazine,
     is_deleted: row.is_deleted === 1,
     is_subscribed: row.is_subscribed === 1,
   };

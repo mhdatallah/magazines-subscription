@@ -1,6 +1,11 @@
 import express, { Request, Response } from "express";
 import dotenv from "dotenv";
-import { createMagazine, deleteMagazine, getMagazine, getMagazines, updateMagazine } from "./database";
+import {
+  createMagazine,
+  getMagazine,
+  getMagazines,
+  updateMagazine,
+} from "./database";
 
 //For env File
 dotenv.config();
@@ -29,8 +34,28 @@ app.post("/magazines", async (req: Request, res: Response) => {
 
 app.post("/magazines/:id", async (req: Request, res: Response) => {
   const { title, id, is_deleted, is_subscribed } = req.body;
-  const magazine = await updateMagazine({ id, title, is_deleted, is_subscribed });
+  const magazine = await updateMagazine({
+    id,
+    title,
+    is_deleted,
+    is_subscribed,
+  });
   res.send(magazine);
+});
+
+// This is not RESTful
+
+app.post("/magazines/:id/subscribe", async (req: Request, res: Response) => {
+  const id = req.params.id;
+  const magazine = await getMagazine(+id);
+  const updatedMagazine = await updateMagazine({ ...magazine, is_subscribed: true });
+  res.send(updatedMagazine);
+});
+app.post("/magazines/:id/cancel-subscription", async (req: Request, res: Response) => {
+  const id = req.params.id;
+  const magazine = await getMagazine(+id);
+  const updatedMagazine = await updateMagazine({ ...magazine, is_subscribed: false });
+  res.send(updatedMagazine);
 });
 
 app.delete("/magazines/:id", async (_req: Request, res: Response) => {

@@ -10,8 +10,7 @@ export const Magazines = () => {
 
   useEffect(() => {
     if (data && !isValidating) setMagazines(data)
-    if (Array.isArray(magazines)) console.log(magazines)
-  }, [data, isValidating, magazines])
+  }, [data, isValidating])
 
   const handleClick = (id: number, is_subscribed: boolean) => {
     const service = is_subscribed ? magazinesCancelSubscription : magazinesSubscribe;

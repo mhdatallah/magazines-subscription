@@ -1,12 +1,21 @@
 "use client"
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useMagazines } from '@/hooks/swr'
+import { magazinesCancelSubscription, magazinesSubscribe } from '@/api/subscriptionService';
+import { Magazine } from '@/types';
 
 export const Magazines = () => {
-  const { data: magazines } = useMagazines();
+  const { data, isValidating, mutate } = useMagazines();
+  const [magazines, setMagazines] = useState<Magazine[]>();
+
+  useEffect(() => {
+    if (data && !isValidating) setMagazines(data)
+    if (Array.isArray(magazines)) console.log(magazines)
+  }, [data, isValidating, magazines])
 
   const handleClick = (id: number, is_subscribed: boolean) => {
-    console.log(id, is_subscribed)
+    const service = is_subscribed ? magazinesCancelSubscription : magazinesSubscribe;
+    service(id).then(() => mutate())
   }
 
   return (
@@ -19,7 +28,7 @@ export const Magazines = () => {
             <td>Actions</td>
           </tr>
           {magazines?.map((mag, idx) => {
-            const { id, title, is_subscribed } = mag;
+            const { id, title, is_subscribed, is_deleted } = mag;
             return (
               <tr key={idx} className='hover:bg-zinc-800 text-stone-300'>
                 <td className='w-4/12'>{title}</td>

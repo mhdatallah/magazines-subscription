@@ -37,7 +37,7 @@ export const getMagazines = async () => {
   const [rows] = await pool.query(`
   SELECT id, title, CAST(is_deleted AS UNSIGNED) AS is_deleted, CAST(is_subscribed AS UNSIGNED) AS is_subscribed
   FROM ${MAGAZINES_TABLE}`);
-  return (rows as RowDataPacket[]).map((row) => convertRow(row));
+  return (rows as RowDataPacket[]).map((row) => convertRow(row)).filter(magazine => !magazine.is_deleted);
 };
 export const getMagazine = async (id: number) => {
   const [row] = await pool.query(

@@ -1,95 +1,97 @@
-import { RowDataPacket, createPool } from "mysql2";
+import { createConnection } from "mysql2/promise";
+import { Sequelize, DataTypes } from "sequelize";
 import dotenv from "dotenv";
-import { MAGAZINES_TABLE } from "./constants";
-
-// Types & Interfaces
-interface Magazine {
-  id: number;
-  title: string;
-  is_deleted: boolean;
-  is_subscribed: boolean;
-}
-
-// Config
 
 dotenv.config();
-const pool = createPool({
-  host: process.env.MYSQL_HOST,
-  user: process.env.MYSQL_USER,
-  password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_DATABASE,
-}).promise();
 
-// Magazines CRUD
+const { MYSQL_HOST, MYSQL_DATABASE, MYSQL_USER, MYSQL_PASSWORD } = process.env;
 
-export const createMagazine = async ({ title }: { title: string }) => {
-  const [row] = await pool.query(
-    `
-  INSERT INTO ${MAGAZINES_TABLE} (title)
-  VALUES (?)
-  `,
-    [title]
-  );
-  const createdMagazine = await getMagazine((row as RowDataPacket).insertId);
-  return createdMagazine;
-};
-export const getMagazines = async () => {
-  const [rows] = await pool.query(`
-  SELECT id, title, CAST(is_deleted AS UNSIGNED) AS is_deleted, CAST(is_subscribed AS UNSIGNED) AS is_subscribed
-  FROM ${MAGAZINES_TABLE}`);
-  return (rows as RowDataPacket[]).map((row) => convertRow(row)).filter(magazine => !magazine.is_deleted);
-};
-export const getMagazine = async (id: number) => {
-  const [row] = await pool.query(
-    `
-    SELECT id, title, CAST(is_deleted AS UNSIGNED) AS is_deleted, CAST(is_subscribed AS UNSIGNED) AS is_subscribed
-    FROM ${MAGAZINES_TABLE}
-    WHERE id = ?
-    `,
-    [id]
-    );
+export let db = {};
 
-  return (row as RowDataPacket[]).map((row) => convertRow(row))[0];
-};
-export const updateMagazine = async ({
-  id,
-  is_deleted,
-  is_subscribed,
-  title,
-}: Magazine) => {
-  const isDeletedBit = is_deleted ? 1 : 0;
-  const isSubscribedBit = is_subscribed ? 1 : 0;
-
-  await pool.query(
-    `
-  UPDATE ${MAGAZINES_TABLE}
-  SET title = ?, is_deleted = ?, is_subscribed = ?
-  WHERE id = ?
-  `,
-    [title, isDeletedBit, isSubscribedBit, id]
+const initialize = async () => {
+  const connection = await createConnection({
+    host: MYSQL_HOST,
+    user: MYSQL_USER,
+    password: MYSQL_PASSWORD,
+  });
+  await connection.query(
+    `CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\`;`
   );
 
-  return await getMagazine(id);
-};
-export const deleteMagazine = async (id: number) => {
-  await pool.query(
-    `
-  UPDATE ${MAGAZINES_TABLE}
-  SET is_deleted = 1
-  WHERE id = ?
-  `,
-    [id]
-  );
+  if (!MYSQL_HOST || !MYSQL_DATABASE || !MYSQL_USER || !MYSQL_PASSWORD) {
+    throw new Error("Databse connection details missing");
+  }
 
-  return await getMagazine(id);
+  const sequelize = new Sequelize(MYSQL_DATABASE, MYSQL_USER, MYSQL_PASSWORD, {
+    host: MYSQL_HOST,
+    dialect: "mysql",
+  });
+
+  const Magazine = sequelize.define("Magazine", {
+    title: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    description: {
+      type: DataTypes.TEXT,
+    },
+    price: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+    },
+    publicationDate: {
+      type: DataTypes.DATE,
+    },
+    isDeleted: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+  });
+
+  const User = sequelize.define("User", {
+    username: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    passwordHash: {
+      type: DataTypes.CHAR(64),
+      allowNull: false,
+    },
+  });
+
+  const Subscription = sequelize.define("Subscription", {
+    startDate: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    endDate: {
+      type: DataTypes.DATE,
+    },
+    isActive: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+    },
+  });
+
+  User.hasMany(Subscription);
+  Subscription.belongsTo(User);
+  Magazine.hasMany(Subscription);
+  Subscription.belongsTo(Magazine);
+
+  sequelize
+    .sync()
+    .then(() => {
+      console.log("Database and tables are in sync.");
+    })
+    .catch((error) => {
+      console.error("Error syncing the database:", error);
+    });
+
+  db = { sequelize, Magazine, User, Subscription };
 };
 
-// Utils
-
-const convertRow = (row: RowDataPacket): Magazine => {
-  return {
-    ...row as Magazine,
-    is_deleted: row.is_deleted === 1,
-    is_subscribed: row.is_subscribed === 1,
-  };
-};
+initialize();

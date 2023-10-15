@@ -1,3 +1,4 @@
+import { Model } from "sequelize";
 import { Magazine } from "../models";
 
 export const createMagazine = ({
@@ -19,3 +20,7 @@ export const createMagazine = ({
   });
 
 export const listMagazines = () => Magazine.findAll();
+
+export const getMagazineByMagazineId = (
+  magazineId: string
+): Promise<Model<any, any> | null> => Magazine.findByPk(magazineId);

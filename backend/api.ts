@@ -1,5 +1,9 @@
 import express, { Request, Response } from "express";
-import { createMagazine, listMagazines } from "./database/tables/magazines";
+import {
+  createMagazine,
+  getMagazineByMagazineId,
+  listMagazines,
+} from "./database/tables/magazines";
 import { createUser } from "./database/tables/users";
 import {
   createSubscription,
@@ -38,12 +42,57 @@ app.post("/api/v1/magazines", async (req: Request, res: Response) => {
 app.get("/api/v1/magazines", async (_req: Request, res: Response) => {
   try {
     const magazines = await listMagazines();
-    res.json(magazines);
+    // @ts-ignore
+    res.json(magazines.filter((mag) => mag.isDeleted !== true));
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to retrieve magazines." });
   }
 });
+
+// Update a magazine
+app.put(
+  "/api/v1/magazines/:magazineId",
+  async (req: Request, res: Response) => {
+    const { magazineId } = req.params;
+    try {
+      const magazine = await getMagazineByMagazineId(magazineId);
+      if (magazine) {
+        // @ts-ignore
+        Object.keys(req.body).forEach((key) => (magazine[key] = req.body[key]));
+        await magazine.save();
+        res.json(magazine);
+      } else {
+        res.status(404).json({ error: "Magazine not found." });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Failed to update the magazine." });
+    }
+  }
+);
+
+// Soft delete a magazine
+app.delete(
+  "/api/v1/magazines/:magazineId",
+  async (req: Request, res: Response) => {
+    const { magazineId } = req.params;
+    try {
+      const magazine = await getMagazineByMagazineId(magazineId);
+      if (magazine) {
+        // @ts-ignore
+        magazine.isDeleted = true;
+        await magazine.save();
+        res.sendStatus(200);
+      } else {
+        res.status(404).json({ error: "Magazine not found." });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Failed to delete magazine." });
+    }
+  }
+);
 
 // Create a new user
 app.post("/api/v1/users", async (req: Request, res: Response) => {

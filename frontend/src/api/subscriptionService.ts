@@ -3,18 +3,35 @@ export const subscriptionsFetcher = (url: string) =>
     res.json()
   );
 
-export const magazinesSubscribe = (id: number) =>
+export const magazinesSubscribe = ({
+  userId,
+  magazineId,
+}: {
+  userId: number;
+  magazineId: number;
+}) =>
   fetch(
-    `${process.env.NEXT_PUBLIC_SUBSCRIPTION_SERVICE}/api/v1/magazines/${id}/subscribe`,
+    `${process.env.NEXT_PUBLIC_SUBSCRIPTION_SERVICE}/api/v1/subscriptions`,
     {
       method: "POST",
+      body: JSON.stringify({
+        userId,
+        magazineId,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
     }
   ).then((res) => res.json());
 
-export const magazinesCancelSubscription = (id: number) =>
+export const magazinesCancelSubscription = ({
+  subscriptionId,
+}: {
+  subscriptionId: number;
+}) =>
   fetch(
-    `${process.env.NEXT_PUBLIC_SUBSCRIPTION_SERVICE}/api/v1/magazines/${id}/cancel-subscription`,
+    `${process.env.NEXT_PUBLIC_SUBSCRIPTION_SERVICE}/api/v1/subscriptions/${subscriptionId}/cancel`,
     {
-      method: "POST",
+      method: "PUT",
     }
   ).then((res) => res.json());

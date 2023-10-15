@@ -1,20 +1,30 @@
 "use client"
 import React, { useEffect, useState } from 'react'
-import { useMagazines } from '@/hooks/swr'
-import { magazinesCancelSubscription, magazinesSubscribe } from '@/api/subscriptionService';
-import { Magazine } from '@/types';
+import { useMagazines, useSubscriptions } from '@/hooks/swr'
+import { magazinesSubscribe } from '@/api/subscriptionService';
+import { Magazine, Subscription } from '@/types';
 
-export const Magazines = () => {
-  const { data, isValidating, mutate } = useMagazines();
+export const Magazines = ({ userId }: { userId: number }) => {
+  const { data: magazinesData, isValidating: isValidatingMagazines, mutate: mutateMagazines } = useMagazines();
+  const { data: subscriptionsData, isValidating: isValidatingSubscriptions, mutate: mutateSubscriptions } = useSubscriptions({ userId });
   const [magazines, setMagazines] = useState<Magazine[]>();
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>();
 
   useEffect(() => {
-    if (data && !isValidating) setMagazines(data)
-  }, [data, isValidating])
+    if (magazinesData && !isValidatingMagazines) setMagazines(magazinesData)
+  }, [magazinesData, isValidatingMagazines])
+  useEffect(() => {
+    if (subscriptionsData && !isValidatingSubscriptions) setSubscriptions(subscriptionsData)
+  }, [isValidatingSubscriptions, subscriptionsData])
 
-  const handleClick = (id: number, is_subscribed: boolean) => {
-    const service = is_subscribed ? magazinesCancelSubscription : magazinesSubscribe;
-    service(id).then(() => mutate())
+
+  const handleClick = (magazineId: number, is_subscribed: boolean) => {
+    if (is_subscribed === false) {
+      magazinesSubscribe({ magazineId, userId }).then(() => {
+        mutateMagazines();
+        mutateSubscriptions();
+      })
+    }
   }
 
   return (
@@ -27,12 +37,13 @@ export const Magazines = () => {
             <td>Actions</td>
           </tr>
           {magazines?.map((mag, idx) => {
-            const { id, title, is_subscribed, is_deleted } = mag;
+            const { id, title } = mag;
+            const is_subscribed = Array.isArray(subscriptions) && subscriptions?.filter(subscription => subscription.isActive && subscription.MagazineId === id).length > 0;
             return (
               <tr key={idx} className='hover:bg-zinc-800 text-stone-300'>
                 <td className='w-4/12'>{title}</td>
                 <td className='w-4/12'>{is_subscribed ? "Subscribed" : "Not subscribed"}</td>
-                <td className='w-4/12'><button onClick={() => handleClick(id, is_subscribed)} className={`px-4 py-2 w-1/2 rounded text-sm ${is_subscribed ? "bg-red-800 hover:bg-red-500 hover:text-black" : "bg-green-800 hover:bg-green-500 hover:text-black"}`}>{is_subscribed ? "Cancel Subscription" : "Subscribe"}</button></td>
+                {(is_subscribed === false) && <td className='w-4/12'><button onClick={() => handleClick(id, is_subscribed)} className={`px-4 py-2 w-1/2 rounded text-sm ${is_subscribed ? "bg-red-800 hover:bg-red-500 hover:text-black" : "bg-green-800 hover:bg-green-500 hover:text-black"}`}>{is_subscribed ? "Cancel Subscription" : "Subscribe"}</button></td>}
               </tr>
             )
           })}

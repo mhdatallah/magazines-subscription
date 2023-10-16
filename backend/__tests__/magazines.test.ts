@@ -26,7 +26,7 @@ describe("Magazine Functions", () => {
       publicationDate: new Date(),
     });
 
-    const magazine = await getMagazineByMagazineId(newMagazine.id);
+    const magazine = await getMagazineByMagazineId(newMagazine.get('id') as string);
 
     expect(magazine).not.toBeNull();
   });

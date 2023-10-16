@@ -18,7 +18,7 @@ describe("Subscription Functions", () => {
       startDate: new Date().toISOString(),
     });
 
-    const subscription = await getSubscriptionBySubscriptionId(newSubscription.id);
+    const subscription = await getSubscriptionBySubscriptionId(newSubscription.get('id') as string);
 
     expect(subscription).not.toBeNull();
   });

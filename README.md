@@ -21,12 +21,11 @@ MYSQL_DATABASE=magazines_subscription
 ```
 3. `npm i`
 4. `npm run db_init`
-5. Wait for a few seconds then `Ctrl+C`
-6. `npm run dev`
+5. `npm run dev`
 
 You will then have a local server running on `http://localhost:3001`
 
-7. Paste the follwoing cURL into your terminal to create a user:
+6. Paste the follwoing cURL into your terminal to create a user:
 ```
 curl  -X POST \
   'http://localhost:3001/api/v1/users' \

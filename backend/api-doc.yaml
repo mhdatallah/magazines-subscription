@@ -1,0 +1,185 @@
+openapi: 3.0.0
+info:
+  title: "Magazine Subscription API"
+  version: "1.0.0"
+
+servers:
+  - url: "http://localhost:3000" # Update with your server URL
+
+paths:
+  /api/v1/magazines:
+    post:
+      summary: Create a new magazine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                price:
+                  type: number
+                publicationDate:
+                  type: string
+      responses:
+        '200':
+          description: Success
+        '500':
+          description: Internal Server Error
+
+    get:
+      summary: List all magazines
+      responses:
+        '200':
+          description: Success
+        '500':
+          description: Internal Server Error
+
+  /api/v1/magazines/{magazineId}:
+    put:
+      summary: Update a magazine
+      parameters:
+        - name: magazineId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Success
+        '404':
+          description: Magazine not found
+        '500':
+          description: Internal Server Error
+
+    delete:
+      summary: Soft delete a magazine
+      parameters:
+        - name: magazineId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+        '404':
+          description: Magazine not found
+        '500':
+          description: Internal Server Error
+
+  /api/v1/users:
+    post:
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                email:
+                  type: string
+                passwordHash:
+                  type: string
+      responses:
+        '200':
+          description: Success
+        '500':
+          description: Internal Server Error
+
+  /api/v1/subscriptions:
+    post:
+      summary: Subscribe to a magazine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                magazineId:
+                  type: string
+      responses:
+        '200':
+          description: Success
+        '500':
+          description: Internal Server Error
+
+  /api/v1/subscriptions/{subscriptionId}/cancel:
+    put:
+      summary: Cancel a subscription (set isActive to false)
+      parameters:
+        - name: subscriptionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+        '404':
+          description: Subscription not found
+        '500':
+          description: Internal Server Error
+
+  /api/v1/users/{userId}/subscriptions:
+    get:
+      summary: List user subscriptions (current and past)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+        '500':
+          description: Internal Server Error
+
+components:
+  schemas:
+    Magazine:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        publicationDate:
+          type: string
+
+    User:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        passwordHash:
+          type: string
+
+    Subscription:
+      type: object
+      properties:
+        userId:
+          type: string
+        magazineId:
+          type: string

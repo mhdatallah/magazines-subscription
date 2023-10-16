@@ -40,6 +40,12 @@ curl  -X POST \
 }
 ```
 
+## Swagger UI
+
+To preview Swagger UI (API documentation), you can visit the following route on your browser after running the backend server:
+
+http://localhost:3001/api-docs/
+
 ## Frontend
 
 1. From the root of the project: `cd ./frontend`

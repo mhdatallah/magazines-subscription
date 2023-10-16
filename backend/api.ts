@@ -42,8 +42,7 @@ app.post("/api/v1/magazines", async (req: Request, res: Response) => {
 app.get("/api/v1/magazines", async (_req: Request, res: Response) => {
   try {
     const magazines = await listMagazines();
-    // @ts-ignore
-    res.json(magazines.filter((mag) => mag.isDeleted !== true));
+    res.json(magazines.filter((mag) => mag.get('isDeleted') !== true));
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to retrieve magazines." });
@@ -58,8 +57,7 @@ app.put(
     try {
       const magazine = await getMagazineByMagazineId(magazineId);
       if (magazine) {
-        // @ts-ignore
-        Object.keys(req.body).forEach((key) => (magazine[key] = req.body[key]));
+        Object.keys(req.body).forEach((key) => (magazine.set(key, req.body[key])));
         await magazine.save();
         res.json(magazine);
       } else {
@@ -80,8 +78,7 @@ app.delete(
     try {
       const magazine = await getMagazineByMagazineId(magazineId);
       if (magazine) {
-        // @ts-ignore
-        magazine.isDeleted = true;
+        magazine.set('isDeleted', true);
         await magazine.save();
         res.sendStatus(200);
       } else {
@@ -132,10 +129,8 @@ app.put(
         subscriptionId
       );
       if (subscription) {
-        // @ts-ignore
-        subscription.isActive = false;
-        // @ts-ignore
-        subscription.endDate = new Date().toISOString();
+        subscription.set('isActive', false);
+        subscription.set('endDate' , new Date().toISOString())
         await subscription.save();
         res.json(subscription);
       } else {

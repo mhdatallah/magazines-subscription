@@ -16,11 +16,8 @@ export const createSubscription = ({
     startDate,
   });
 
-export const getSubscriptionBySubscriptionId = (
-  subscriptionId: string
-): Promise<Model<{
-  isActive: boolean;
-}, any> | null> => Subscription.findByPk(subscriptionId);
+export const getSubscriptionBySubscriptionId = (subscriptionId: string) =>
+  Subscription.findByPk(subscriptionId);
 
 export const getSubscriptionsByUserId = (UserId: string) =>
   Subscription.findAll({

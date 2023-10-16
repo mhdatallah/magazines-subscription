@@ -16,4 +16,4 @@ const initialize = async () => {
   );
 };
 
-initialize();
+initialize().then(() => process.exit(1));

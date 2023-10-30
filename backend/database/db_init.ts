@@ -5,7 +5,7 @@ dotenv.config();
 
 const { MYSQL_HOST, MYSQL_DATABASE, MYSQL_USER, MYSQL_PASSWORD } = process.env;
 
-const initialize = async () => {
+(async () => {
   const connection = await createConnection({
     host: MYSQL_HOST,
     user: MYSQL_USER,
@@ -14,6 +14,4 @@ const initialize = async () => {
   await connection.query(
     `CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\`;`
   );
-};
-
-initialize().then(() => process.exit(1));
+})().then(() => process.exit(1));

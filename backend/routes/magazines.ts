@@ -8,38 +8,39 @@ import {
 
 const router = express.Router();
 
-// Create a new magazine
-router.post("/api/v1/magazines", async (req: Request, res: Response) => {
-  try {
-    const { title, description, price, publicationDate } = req.body;
-    const newMagazine = await createMagazine({
-      title,
-      description,
-      price,
-      publicationDate,
-    });
-    res.json(newMagazine);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to create a magazine." });
-  }
-});
+router
+  .route("/")
+  // Create a new magazine
+  .post(async (req: Request, res: Response) => {
+    try {
+      const { title, description, price, publicationDate } = req.body;
+      const newMagazine = await createMagazine({
+        title,
+        description,
+        price,
+        publicationDate,
+      });
+      res.json(newMagazine);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Failed to create a magazine." });
+    }
+  })
+  // List all magazines
+  .get(async (_req: Request, res: Response) => {
+    try {
+      const magazines = await listMagazines();
+      res.json(magazines.filter((mag) => mag.get("isDeleted") !== true));
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Failed to retrieve magazines." });
+    }
+  });
 
-// List all magazines
-router.get("/api/v1/magazines", async (_req: Request, res: Response) => {
-  try {
-    const magazines = await listMagazines();
-    res.json(magazines.filter((mag) => mag.get("isDeleted") !== true));
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to retrieve magazines." });
-  }
-});
-
-// Update a magazine
-router.put(
-  "/api/v1/magazines/:magazineId",
-  async (req: Request, res: Response) => {
+router
+  .route("/:magazineId")
+  // Update a magazine
+  .put(async (req: Request, res: Response) => {
     const { magazineId } = req.params;
     try {
       const magazine = await getMagazineByMagazineId(magazineId);
@@ -56,13 +57,9 @@ router.put(
       console.error(error);
       res.status(500).json({ error: "Failed to update the magazine." });
     }
-  }
-);
-
-// Soft delete a magazine
-router.delete(
-  "/api/v1/magazines/:magazineId",
-  async (req: Request, res: Response) => {
+  })
+  // Soft delete a magazine
+  .delete(async (req: Request, res: Response) => {
     const { magazineId } = req.params;
     try {
       const magazine = await getMagazineByMagazineId(magazineId);
@@ -77,7 +74,6 @@ router.delete(
       console.error(error);
       res.status(500).json({ error: "Failed to delete magazine." });
     }
-  }
-);
+  });
 
 export default router;
